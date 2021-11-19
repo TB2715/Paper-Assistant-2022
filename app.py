@@ -3,8 +3,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-import joblib
-
 
 def load_sample_result():
     with open('./data/sample_result.txt','r',encoding='utf-8') as rf:
