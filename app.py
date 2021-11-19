@@ -135,16 +135,23 @@ def main():
 
         if submit_text:
             a_dict = tword_dict[choice]
+            prev_sent = a_dict['prev_sent']
+            next_sent = a_dict['next_sent']
 
             st.subheader('prev sentence')
-            st.write(a_dict['prev_sent'])
+            st.write(prev_sent)
 
             st.subheader('next sentence')
-            st.write(a_dict['next_sent'])
+            st.write(next_sent)
+
+            st.write('-------------------------------')
+            st.subheader('Result')
+            pred_label = a_dict['pred_label']
+            st.markdown(f'{prev_sent}<span style="background-color:#0E4D92;color:white; border-radius:2%;margin: 0px 5px; padding: 2px 5px; border-radius: 4px">{pred_label}</span>{next_sent}', unsafe_allow_html=True)
+
 
             st.write('-------------------------------')
             st.subheader('Recommend transition words')
-            pred_label = a_dict['pred_label']
             st.subheader(pred_label)
             st.info(tword_label_dict[pred_label])
 
