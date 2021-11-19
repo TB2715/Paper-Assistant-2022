@@ -4,8 +4,8 @@ import pandas as pd
 import numpy as np
 
 
-def load_sample_result():
-    with open('./data/sample_result.txt','r',encoding='utf-8') as rf:
+def load_item1_sample_result():
+    with open('data/item1_sample_result.txt', 'r', encoding='utf-8') as rf:
         lines = rf.readlines()
 
         a_sent_idx = 0
@@ -28,27 +28,54 @@ def load_sample_result():
     return abs_dict
 
 
+def load_item3_sample_result():
+    with open('data/item3_sample_result.txt', 'r', encoding='utf-8') as rf:
+        lines = rf.readlines()
+
+        tword_dict = {}
+
+        for lidx, line in enumerate(lines):
+            result, true, pred, prev_sent, next_sent = (line.rstrip()).split('\t')
+            tword_dict[f'example_{lidx}'] = {
+                'result': result,
+                'true_label': true,
+                'pred_label': pred,
+                'prev_sent': prev_sent,
+                'next_sent': next_sent
+            }
+
+    return tword_dict
+
+
 def load_vocab():
     label_dict = {}
-    with open('./data/label.vocab', 'r', encoding='utf-8') as rf:
+    with open('data/item1_label.vocab', 'r', encoding='utf-8') as rf:
         for line in rf.readlines():
             index, label = (line.rstrip()).split('\t')
             label_dict[index] = label
 
     return label_dict
 
+
 def main():
     st.title('Paper Assistant 2022')
-    menu = ['Abstract', 'Transition Word']
+    menu = ['Abstract Analysis', 'Transition Word Recommend']
     choice = st.sidebar.selectbox('Menu', menu)
 
-    abs_dict = load_sample_result()
-    label_dict = load_vocab()
+    if choice == 'Abstract Analysis':
+        abs_dict = load_item1_sample_result()
+        label_dict = load_vocab()
 
-    if choice == 'Abstract':
         st.subheader('Abstract Analysis')
         with st.expander('SPA 2022: Abstract Class Label'):
-            st.markdown('* ')
+            st.markdown("""
+                * Introduction:  현재 문헌에 대한 reference, 주제의 중요성, 지식 격차 식별
+                * Aims: 현재 연구의 목표 
+                * Method: 사용된 방법에 대한 설명
+                * Results: 주요 연구 결과에 대한 설명
+                * Discussion: 연구 결과의 의미, 현재 연구의 가치에 대한 내용
+                * Extra: 연구 자료 등의 전달을 위한 url과 같은 추가 정보
+            """)
 
         with st.form(key='abstract_sentence'):
             choice = st.selectbox(
@@ -71,16 +98,56 @@ def main():
             temp_df = pd.DataFrame(temp_dict, index=['sentence', 'true_label', 'predict_label', 'result'])
             temp_df = temp_df.transpose()
             st.table(temp_df)
-                # with col[a_s_idx]:
-                #     st.success('Original Text')
-                #
-                #     st.write(abs_dict[choice][a_s_idx])
-                #
-                #     st.success('Answer')
-                #     st.write()
 
-    elif choice == 'Transition Word':
+    elif choice == 'Transition Word Recommend':
+        tword_dict = load_item3_sample_result()
+
+        tword_label_dict = {
+            'Additive': 'moreover, in addition, furthermore, as well as, in fact, as a matter of fact, \
+                        additionally, that is, in other words, put another way, put it another way, what this means is,\
+                        this means, specifically, namely, for example, for instance, to illustrate, in particular, \
+                        one example, particularly, notably, especially',
+            'Adversative': 'yet, nevertheless, despite, in spite of, although, even though, conversely, on the contrary, \
+                            when in fact, by way of contrast, nonetheless, regardless, admittedly, even so, \
+                            be that as it my, however, in contrast, unlike, in contrast to,  while, whereas',
+            'Causal': 'thus, hence, therefore, as a result, consequently, for this reason, as a consequence, so much \
+                        that, accordingly, due to, owing to, because of, on account of, since, for the reason that',
+            'Sequence': 'firstly, first of all, secondly, thirdly, finally, in conclusion, initially, to start with, \
+                    in the first place, in the second place, in the third place',
+        }
+
         st.subheader('Transition word recommend')
+        with st.expander('SPA 2022: Transition Word Class Label'):
+            st.markdown("""
+                        * Additive:  signal that you are adding or referencing information
+                        * Adversative: indicate conflict or disagreement
+                        * Causal: point to consequences and show cause-and-effect relationships
+                        * Sequence: clarify the sequence of information and overall structure of the paper
+                    """)
+
+        with st.form(key='transition_word'):
+
+            choice = st.selectbox(
+                'select transition word sentence example from the list',
+                (tword_dict.keys())
+            )
+            submit_text = st.form_submit_button(label='Submit')
+
+        if submit_text:
+            a_dict = tword_dict[choice]
+
+            st.subheader('prev sentence')
+            st.write(a_dict['prev_sent'])
+
+            st.subheader('next sentence')
+            st.write(a_dict['next_sent'])
+
+            st.write('-------------------------------')
+            st.subheader('Recommend transition words')
+            pred_label = a_dict['pred_label']
+            st.subheader(pred_label)
+            st.info(tword_label_dict[pred_label])
+
 
 
 if __name__ == '__main__':
