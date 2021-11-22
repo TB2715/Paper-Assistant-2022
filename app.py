@@ -33,10 +33,19 @@ def load_item3_sample_result():
         lines = rf.readlines()
 
         tword_dict = {}
+        tword_label_dict = {}
 
         for lidx, line in enumerate(lines):
             result, true, pred, prev_sent, next_sent = (line.rstrip()).split('\t')
-            tword_dict[f'example_{lidx}'] = {
+            if true in tword_label_dict:
+                t_idx = tword_label_dict[pred]
+                key = f'{true}_ex_{t_idx+1}'
+                tword_label_dict[pred] += 1
+            else:
+                tword_label_dict[pred] = 1
+                key = f'{true}_ex_{1}'
+
+            tword_dict[key] = {
                 'result': result,
                 'true_label': true,
                 'pred_label': pred,
@@ -129,7 +138,7 @@ def main():
 
             choice = st.selectbox(
                 'select transition word sentence example from the list',
-                (tword_dict.keys())
+                sorted(list(tword_dict.keys()))
             )
             submit_text = st.form_submit_button(label='Submit')
 
@@ -144,6 +153,7 @@ def main():
             st.subheader('next sentence')
             st.write(next_sent)
 
+            st.write('-------------------------------')
             st.write('-------------------------------')
             st.subheader('Result')
             pred_label = a_dict['pred_label']
